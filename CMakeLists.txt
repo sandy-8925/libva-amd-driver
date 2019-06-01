@@ -6,12 +6,12 @@ set(LIB_VERSION_MAJOR 0)
 set(LIB_VERSION_MINOR 1)
 set(LIB_NAME "amd_drv_video")
 
-configure_file("base.h.in" "${PROJECT_BINARY_DIR}/base.h")
+configure_file("src/base.h.in" "${PROJECT_BINARY_DIR}/base.h")
 
 include_directories("${PROJECT_BINARY_DIR}")
 
 set(SOURCE_FILES
-    "main.cpp"
+    "src/main.cpp"
     )
 
 add_library(${LIB_NAME} SHARED ${SOURCE_FILES})

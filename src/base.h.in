@@ -1,4 +1,2 @@
 #define LIB_VERSION_MAJOR @LIB_VERSION_MAJOR@
 #define LIB_VERSION_MINOR @LIB_VERSION_MINOR@
-
-#include <va/va_backend.h>
