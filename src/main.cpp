@@ -1,5 +1,10 @@
 #include "base.h"
 #include "va_private.h"
+#include "SurfaceTable.h"
+
+#include <cstring>
+
+using namespace std;
 
 static VAStatus CreateSurfaces2(
     VADriverContextP    context,
@@ -29,7 +34,16 @@ static VAStatus CreateSurfaces2(
             return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
     }
     
+    //TODO: Check the attrib_list and num_attribs parameters and handle appropriately
     
+    memset(surfaces, VA_INVALID_ID, num_surfaces * sizeof(VASurfaceID));
+    
+    for(int ctr=0; ctr<num_surfaces; ctr++) {
+        //TODO: Handle actual allocation of surfaces as well 
+        surfaces[ctr] = GlobalSurfTable.insert(new Surface);
+    }
+    
+    return VA_STATUS_SUCCESS;
 }
 
 static VAStatus CreateSurfaces(VADriverContextP    context,
@@ -41,6 +55,14 @@ static VAStatus CreateSurfaces(VADriverContextP    context,
 {
     return CreateSurfaces2(context, format, width, height, surfaces, num_surfaces,
                               NULL, 0);
+}
+
+static VAStatus DeriveImage(
+		VADriverContextP context,
+		VASurfaceID surfaceId,
+		VAImage *image     /* out */)
+{
+    
 }
 
 VAStatus vaDriverInit(VADriverContextP context) {
@@ -59,6 +81,7 @@ VAStatus vaDriverInit(VADriverContextP context) {
     
     context->vtable->vaCreateSurfaces = CreateSurfaces;
     context->vtable->vaCreateSurfaces2 = CreateSurfaces2;
+    context->vtable->vaDeriveImage = DeriveImage;
     
     return VA_STATUS_SUCCESS;
 }
