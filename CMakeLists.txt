@@ -11,6 +11,8 @@ configure_file("src/base.h.in" "${PROJECT_BINARY_DIR}/base.h")
 include_directories("${PROJECT_BINARY_DIR}")
 
 set(SOURCE_FILES
+    "src/DataTables.h"
+    "src/DataTables.cpp"
     "src/main.cpp"
     )
 

@@ -1,8 +1,9 @@
 #include "base.h"
 #include "va_private.h"
-#include "SurfaceTable.h"
+#include "DataTables.h"
 
 #include <cstring>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -19,9 +20,21 @@ static VAStatus CreateSurfaces2(
 {
     if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
     
-    if(width<=0 || height<=0) return VA_STATUS_ERROR_INVALID_PARAMETER;
-    if(num_surfaces <= 0) return VA_STATUS_ERROR_INVALID_PARAMETER;
-    if(surfaces == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    if(width<=0 || height<=0)
+    {
+        context->info_callback(context, "Width and/or height is negative/zero");
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+    if(num_surfaces <= 0)
+    {
+        context->info_callback(context, "Invalid value for num_surfaces parameter");
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+    if(surfaces == nullptr)
+    {
+        context->info_callback(context, "surfaces pointer is null");
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
     
     switch(format) {
         case VA_RT_FORMAT_YUV420:
@@ -39,8 +52,11 @@ static VAStatus CreateSurfaces2(
     memset(surfaces, VA_INVALID_ID, num_surfaces * sizeof(VASurfaceID));
     
     for(int ctr=0; ctr<num_surfaces; ctr++) {
-        //TODO: Handle actual allocation of surfaces as well 
-        surfaces[ctr] = GlobalSurfTable.insert(new Surface);
+        //TODO: Handle actual allocation of surfaces as well
+        Surface *surf = new Surface;
+        surf->width = width;
+        surf->height = height;
+        surfaces[ctr] = GlobalSurfTable.insert(surf);
     }
     
     return VA_STATUS_SUCCESS;
@@ -62,7 +78,21 @@ static VAStatus DeriveImage(
 		VASurfaceID surfaceId,
 		VAImage *image     /* out */)
 {
+    if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
     
+    Surface* surface = GlobalSurfTable.getValue(surfaceId);
+    if(surface == nullptr) return VA_STATUS_ERROR_INVALID_SURFACE;
+    
+    VAImage* img = (VAImage*) malloc(sizeof(VAImage));
+    if(img == nullptr) return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    
+    img->image_id = GlobalImageTable.insert(img);
+    //TODO: Setup img->format
+    img->num_palette_entries = 0;
+    img->entry_bytes = 0;
+    
+    *image = *img;
+    return VA_STATUS_SUCCESS;
 }
 
 VAStatus vaDriverInit(VADriverContextP context) {
