@@ -88,6 +88,8 @@ static VAStatus DeriveImage(
     
     img->image_id = GlobalImageTable.insert(img);
     //TODO: Setup img->format
+    img->width = surface->width;
+    img->height = surface->height;
     img->num_palette_entries = 0;
     img->entry_bytes = 0;
     
