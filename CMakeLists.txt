@@ -20,3 +20,4 @@ target_include_directories(${LIB_NAME}
                 ${PROJECT_BINARY_DIR}
                 ${CMAKE_CURRENT_SOURCE_DIR}/src
             )
+target_compile_features(${LIB_NAME} PRIVATE cxx_std_14)
