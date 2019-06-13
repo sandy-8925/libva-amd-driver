@@ -83,7 +83,7 @@ static VAStatus DeriveImage(
     Surface* surface = GlobalSurfTable.getValue(surfaceId);
     if(surface == nullptr) return VA_STATUS_ERROR_INVALID_SURFACE;
     
-    VAImage* img = (VAImage*) malloc(sizeof(VAImage));
+    VAImage* img = new VAImage;
     if(img == nullptr) return VA_STATUS_ERROR_ALLOCATION_FAILED;
     
     img->image_id = GlobalImageTable.insert(img);
