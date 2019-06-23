@@ -173,6 +173,7 @@ VAStatus vaDriverInit(VADriverContextP context) {
     context->vtable->vaCreateSurfaces2 = CreateSurfaces2;
     context->vtable->vaDeriveImage = DeriveImage;
     context->vtable->vaQueryConfigProfiles = QueryConfigProfiles;
+    context->vtable->vaQueryConfigEntrypoints = QueryConfigEntrypoints;
     
     return VA_STATUS_SUCCESS;
 }
