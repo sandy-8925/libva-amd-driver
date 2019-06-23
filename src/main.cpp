@@ -110,6 +110,15 @@ VAStatus QueryConfigProfiles(VADriverContextP context, VAProfile *profile_list, 
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus QueryConfigEntrypoints (VADriverContextP context, VAProfile profile, VAEntrypoint *entrypoint_list, int *num_entrypoints)
+{
+    if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    if(entrypoint_list == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    if(num_entrypoints == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;      
+    
+    return hawaii_getSupportedEntryPoints(profile, entrypoint_list, num_entrypoints);
+}
+
 VAStatus vaDriverInit(VADriverContextP context) {
     if(context==nullptr || context->vtable==nullptr || context->vtable_vpp==nullptr)
     { return VA_STATUS_ERROR_INVALID_CONTEXT; }
