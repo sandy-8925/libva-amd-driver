@@ -12,8 +12,12 @@ private:
     Key latestKey = 0;
     
 public:
-    Key insert(Value* surface);
-    Value* getValue(Key surfId);
+    Key insert(Value* val);
+    Value* getValue(Key key);
+    /*
+     * Removes all data from this table
+     */
+    void clear();
 };
 
 class Surface {

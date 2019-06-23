@@ -13,7 +13,16 @@ class DriverData
     public:
         DataTable<VASurfaceID, Surface> surfaceTable;
         DataTable<VAImageID, VAImage> imageTable;
+        /*
+         * Clears all data within this object
+         */
+        void cleanup();
 };
+
+void DriverData::cleanup() {
+    surfaceTable.clear();
+    imageTable.clear();
+}
 
 #define GET_DRIVER_DATA(context) (DriverData*)context->pDriverData
 
@@ -132,11 +141,24 @@ VAStatus QueryConfigEntrypoints (VADriverContextP context, VAProfile profile, VA
     return hawaii_getSupportedEntryPoints(profile, entrypoint_list, num_entrypoints);
 }
 
+VAStatus DriverTerminate( VADriverContextP context)
+{
+    if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    DriverData* driverData = GET_DRIVER_DATA(context);
+    if(driverData == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    
+    driverData->cleanup();
+    delete driverData;
+    context->pDriverData = driverData = nullptr;
+    
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus vaDriverInit(VADriverContextP context) {
     if(context==nullptr || context->vtable==nullptr || context->vtable_vpp==nullptr)
     { return VA_STATUS_ERROR_INVALID_CONTEXT; }
     
-    context->pDriverData = new DriverData; //TODO: Delete the individual table contents and the DriverData object in the driver cleanup function
+    context->pDriverData = new DriverData;
     context->version_major = VA_MAJOR_VERSION;
     context->version_minor = VA_MINOR_VERSION;
     context->max_profiles = VA_MAX_PROFILES;
@@ -146,6 +168,7 @@ VAStatus vaDriverInit(VADriverContextP context) {
     context->max_display_attributes = VA_MAX_DISPLAY_ATTRIBS;
     context->str_vendor = VA_VENDOR_STRING;
     
+    context->vtable->vaTerminate = DriverTerminate;
     context->vtable->vaCreateSurfaces = CreateSurfaces;
     context->vtable->vaCreateSurfaces2 = CreateSurfaces2;
     context->vtable->vaDeriveImage = DeriveImage;
