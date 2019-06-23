@@ -136,7 +136,7 @@ VAStatus vaDriverInit(VADriverContextP context) {
     if(context==nullptr || context->vtable==nullptr || context->vtable_vpp==nullptr)
     { return VA_STATUS_ERROR_INVALID_CONTEXT; }
     
-    context->pDriverData = new DriverData;
+    context->pDriverData = new DriverData; //TODO: Delete the individual table contents and the DriverData object in the driver cleanup function
     context->version_major = VA_MAJOR_VERSION;
     context->version_minor = VA_MINOR_VERSION;
     context->max_profiles = VA_MAX_PROFILES;
