@@ -1,6 +1,7 @@
 #include "base.h"
 #include "va_private.h"
 #include "DataTables.h"
+#include "hawaii.h"
 
 #include <cstring>
 #include <stdlib.h>
@@ -97,6 +98,18 @@ static VAStatus DeriveImage(
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus QueryConfigProfiles(VADriverContextP context, VAProfile *profile_list, int *num_profiles)
+{
+    if(context == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    if(profile_list == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    if(num_profiles == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    
+    memcpy(profile_list, HAWAII_SUPPORTED_VAPROFILES, sizeof(HAWAII_SUPPORTED_VAPROFILES));
+    *num_profiles = sizeof(HAWAII_SUPPORTED_VAPROFILES)/sizeof(HAWAII_SUPPORTED_VAPROFILES[0]);
+    
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus vaDriverInit(VADriverContextP context) {
     if(context==nullptr || context->vtable==nullptr || context->vtable_vpp==nullptr)
     { return VA_STATUS_ERROR_INVALID_CONTEXT; }
@@ -114,6 +127,7 @@ VAStatus vaDriverInit(VADriverContextP context) {
     context->vtable->vaCreateSurfaces = CreateSurfaces;
     context->vtable->vaCreateSurfaces2 = CreateSurfaces2;
     context->vtable->vaDeriveImage = DeriveImage;
+    context->vtable->vaQueryConfigProfiles = QueryConfigProfiles;
     
     return VA_STATUS_SUCCESS;
 }
