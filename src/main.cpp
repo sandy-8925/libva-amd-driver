@@ -8,6 +8,15 @@
 
 using namespace std;
 
+class DriverData
+{
+    public:
+        DataTable<VASurfaceID, Surface> surfaceTable;
+        DataTable<VAImageID, VAImage> imageTable;
+};
+
+#define GET_DRIVER_DATA(context) (DriverData*)context->pDriverData
+
 static VAStatus CreateSurfaces2(
     VADriverContextP    context,
     uint32_t            format,
@@ -20,6 +29,8 @@ static VAStatus CreateSurfaces2(
     )
 {
     if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    
+    DriverData* driverData = GET_DRIVER_DATA(context);
     
     if(width<=0 || height<=0)
     {
@@ -57,7 +68,7 @@ static VAStatus CreateSurfaces2(
         Surface *surf = new Surface;
         surf->width = width;
         surf->height = height;
-        surfaces[ctr] = GlobalSurfTable.insert(surf);
+        surfaces[ctr] = driverData->surfaceTable.insert(surf);
     }
     
     return VA_STATUS_SUCCESS;
@@ -80,14 +91,16 @@ static VAStatus DeriveImage(
 		VAImage *image     /* out */)
 {
     if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+ 
+    DriverData* driverData = GET_DRIVER_DATA(context);
     
-    Surface* surface = GlobalSurfTable.getValue(surfaceId);
+    Surface* surface = driverData->surfaceTable.getValue(surfaceId);
     if(surface == nullptr) return VA_STATUS_ERROR_INVALID_SURFACE;
     
     VAImage* img = new VAImage;
     if(img == nullptr) return VA_STATUS_ERROR_ALLOCATION_FAILED;
     
-    img->image_id = GlobalImageTable.insert(img);
+    img->image_id = driverData->imageTable.insert(img);
     //TODO: Setup img->format
     img->width = surface->width;
     img->height = surface->height;
@@ -123,7 +136,7 @@ VAStatus vaDriverInit(VADriverContextP context) {
     if(context==nullptr || context->vtable==nullptr || context->vtable_vpp==nullptr)
     { return VA_STATUS_ERROR_INVALID_CONTEXT; }
     
-    context->pDriverData = nullptr;
+    context->pDriverData = new DriverData;
     context->version_major = VA_MAJOR_VERSION;
     context->version_minor = VA_MINOR_VERSION;
     context->max_profiles = VA_MAX_PROFILES;

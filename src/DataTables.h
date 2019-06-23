@@ -20,6 +20,3 @@ class Surface {
 public:
     uint32_t width, height;
 };
-
-static DataTable<VASurfaceID, Surface> GlobalSurfTable;
-static DataTable<VAImageID, VAImage> GlobalImageTable;
