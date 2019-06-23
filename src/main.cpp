@@ -128,7 +128,7 @@ VAStatus vaDriverInit(VADriverContextP context) {
     context->version_minor = VA_MINOR_VERSION;
     context->max_profiles = VA_MAX_PROFILES;
     context->max_entrypoints = VA_MAX_ENTRYPOINTS;
-    context->max_attributes = (int32_t)VAConfigAttribTypeMax;
+    context->max_attributes = VAConfigAttribTypeMax;
     context->max_subpic_formats = VA_MAX_SUBPIC_FORMATS;
     context->max_display_attributes = VA_MAX_DISPLAY_ATTRIBS;
     context->str_vendor = VA_VENDOR_STRING;
