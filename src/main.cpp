@@ -154,6 +154,17 @@ VAStatus DriverTerminate( VADriverContextP context)
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus QueryDisplayAttributes(VADriverContextP context, VADisplayAttribute *attr_list, int *num_attribs) 
+{
+    if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    if(attr_list == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    if(num_attribs == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    
+    num_attribs = 0;
+    
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus vaDriverInit(VADriverContextP context) {
     if(context==nullptr || context->vtable==nullptr || context->vtable_vpp==nullptr)
     { return VA_STATUS_ERROR_INVALID_CONTEXT; }
@@ -174,6 +185,7 @@ VAStatus vaDriverInit(VADriverContextP context) {
     context->vtable->vaDeriveImage = DeriveImage;
     context->vtable->vaQueryConfigProfiles = QueryConfigProfiles;
     context->vtable->vaQueryConfigEntrypoints = QueryConfigEntrypoints;
+    context->vtable->vaQueryDisplayAttributes = QueryDisplayAttributes;
     
     return VA_STATUS_SUCCESS;
 }
