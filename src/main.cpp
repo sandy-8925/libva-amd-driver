@@ -165,6 +165,18 @@ VAStatus QueryDisplayAttributes(VADriverContextP context, VADisplayAttribute *at
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus QueryImageFormats(VADriverContextP context, VAImageFormat *format_list, int *num_formats)
+{
+    if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    if(format_list == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    if(num_formats == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    
+    memcpy(format_list, HAWAII_SUPPORTED_IMAGEFORMATS, sizeof(HAWAII_SUPPORTED_IMAGEFORMATS));
+    *num_formats = sizeof(HAWAII_SUPPORTED_IMAGEFORMATS)/sizeof(HAWAII_SUPPORTED_IMAGEFORMATS[0]);
+    
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus vaDriverInit(VADriverContextP context) {
     if(context==nullptr || context->vtable==nullptr || context->vtable_vpp==nullptr)
     { return VA_STATUS_ERROR_INVALID_CONTEXT; }
@@ -177,6 +189,7 @@ VAStatus vaDriverInit(VADriverContextP context) {
     context->max_attributes = VAConfigAttribTypeMax;
     context->max_subpic_formats = VA_MAX_SUBPIC_FORMATS;
     context->max_display_attributes = VA_MAX_DISPLAY_ATTRIBS;
+    context->max_image_formats = VA_MAX_IMAGE_FORMATS;
     context->str_vendor = VA_VENDOR_STRING;
     
     context->vtable->vaTerminate = DriverTerminate;
@@ -186,6 +199,7 @@ VAStatus vaDriverInit(VADriverContextP context) {
     context->vtable->vaQueryConfigProfiles = QueryConfigProfiles;
     context->vtable->vaQueryConfigEntrypoints = QueryConfigEntrypoints;
     context->vtable->vaQueryDisplayAttributes = QueryDisplayAttributes;
+    context->vtable->vaQueryImageFormats = QueryImageFormats;
     
     return VA_STATUS_SUCCESS;
 }

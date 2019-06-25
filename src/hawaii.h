@@ -41,4 +41,9 @@ VAStatus hawaii_getSupportedEntryPoints(VAProfile profile, VAEntrypoint *entrypo
     return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
 }
 
+static VAImageFormat HAWAII_SUPPORTED_IMAGEFORMATS[] = {
+    {.fourcc = VA_FOURCC_NV12},
+    {.fourcc = VA_FOURCC_P016}
+};
+
 #endif //_HAWAII_H
