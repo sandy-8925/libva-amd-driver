@@ -177,6 +177,32 @@ VAStatus QueryImageFormats(VADriverContextP context, VAImageFormat *format_list,
     return VA_STATUS_SUCCESS;
 }
 
+static VAImageFormat subpicFormats[] = {
+   {
+   .fourcc = VA_FOURCC_BGRA,
+   .byte_order = VA_LSB_FIRST,
+   .bits_per_pixel = 32,
+   .depth = 32,
+   .red_mask   = 0x00ff0000ul,
+   .green_mask = 0x0000ff00ul,
+   .blue_mask  = 0x000000fful,
+   .alpha_mask = 0xff000000ul,
+   },
+};
+
+VAStatus QuerySubpictureFormats(VADriverContextP context, VAImageFormat *format_list, unsigned int *flags, unsigned int *num_formats)
+{
+    if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    if(format_list == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    if(flags == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    if(num_formats == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    
+    memcpy(format_list, subpicFormats, sizeof(subpicFormats));
+    *num_formats = sizeof(subpicFormats)/sizeof(subpicFormats[0]);
+    
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus vaDriverInit(VADriverContextP context) {
     if(context==nullptr || context->vtable==nullptr || context->vtable_vpp==nullptr)
     { return VA_STATUS_ERROR_INVALID_CONTEXT; }
@@ -200,6 +226,7 @@ VAStatus vaDriverInit(VADriverContextP context) {
     context->vtable->vaQueryConfigEntrypoints = QueryConfigEntrypoints;
     context->vtable->vaQueryDisplayAttributes = QueryDisplayAttributes;
     context->vtable->vaQueryImageFormats = QueryImageFormats;
+    context->vtable->vaQuerySubpictureFormats = QuerySubpictureFormats;
     
     return VA_STATUS_SUCCESS;
 }
