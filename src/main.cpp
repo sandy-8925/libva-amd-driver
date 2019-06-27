@@ -40,6 +40,7 @@ static VAStatus CreateSurfaces2(
     if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
     
     DriverData* driverData = GET_DRIVER_DATA(context);
+    if(driverData == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
     
     if(width<=0 || height<=0)
     {
@@ -102,6 +103,7 @@ static VAStatus DeriveImage(
     if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
  
     DriverData* driverData = GET_DRIVER_DATA(context);
+    if(driverData == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
     
     Surface* surface = driverData->surfaceTable.getValue(surfaceId);
     if(surface == nullptr) return VA_STATUS_ERROR_INVALID_SURFACE;
