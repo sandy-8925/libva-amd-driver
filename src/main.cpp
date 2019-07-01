@@ -40,13 +40,13 @@ void DriverData::cleanup() {
 
 static VAStatus CreateSurfaces2(
     VADriverContextP    context,
-    uint32_t            format,
-    uint32_t            width,
-    uint32_t            height,
+    unsigned int        format,
+    unsigned int        width,
+    unsigned int        height,
     VASurfaceID        *surfaces,
-    uint32_t            num_surfaces,
+    unsigned int        num_surfaces,
     VASurfaceAttrib    *attrib_list,
-    uint32_t            num_attribs
+    unsigned int        num_attribs
     )
 {
     if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
@@ -97,10 +97,10 @@ static VAStatus CreateSurfaces2(
 }
 
 static VAStatus CreateSurfaces(VADriverContextP    context,
-    int32_t             width,
-    int32_t             height,
-    int32_t             format,
-    int32_t             num_surfaces,
+    int             width,
+    int             height,
+    int             format,
+    int             num_surfaces,
     VASurfaceID        *surfaces)
 {
     return CreateSurfaces2(context, format, width, height, surfaces, num_surfaces,
