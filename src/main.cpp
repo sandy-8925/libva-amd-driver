@@ -124,7 +124,7 @@ static VAStatus DeriveImage(
 
 VAStatus QueryConfigProfiles(VADriverContextP context, VAProfile *profile_list, int *num_profiles)
 {
-    if(context == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
     if(profile_list == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
     if(num_profiles == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
     
