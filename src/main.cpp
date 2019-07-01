@@ -239,8 +239,10 @@ VAStatus vaDriverInit(VADriverContextP context) {
 }
 
 #define VA_DRIVER_FUNCTION(_major, _minor) __vaDriverInit_##_major##_##_minor
-#define VA_DRIVER_INIT_FUNCTION VA_DRIVER_FUNCTION(VA_MAJOR_VERSION, VA_MINOR_VERSION)
+#define VA_DRIVER_INIT_FUNCTION VA_DRIVER_FUNCTION(1, 4)
 
+extern "C" {
 VAStatus VA_DRIVER_INIT_FUNCTION(VADriverContextP context) {
     return vaDriverInit(context);
+}
 }
