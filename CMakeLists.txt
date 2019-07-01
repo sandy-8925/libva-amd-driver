@@ -21,3 +21,5 @@ target_sources(${LIB_NAME}
                     "src/DataTables.cpp"
                     "src/main.cpp"
               )
+
+target_link_libraries(${LIB_NAME} PRIVATE va)
