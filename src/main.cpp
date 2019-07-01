@@ -8,6 +8,11 @@
 
 using namespace std;
 
+class Surface {
+public:
+    uint32_t width, height;
+};
+
 class DriverData
 {
     public:

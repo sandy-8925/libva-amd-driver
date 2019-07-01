@@ -18,7 +18,6 @@ target_include_directories(${LIB_NAME}
                           )
 target_sources(${LIB_NAME}
                 PRIVATE
-                    "src/DataTables.cpp"
                     "src/main.cpp"
               )
 
