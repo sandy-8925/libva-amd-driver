@@ -166,15 +166,7 @@ VAStatus QueryConfigEntrypoints (VADriverContextP context, VAProfile profile, VA
     if(num_entrypoints == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;      
     
     vector<VAProfile> supportedProfiles = driverData->getChipData()->getSupportedVaProfiles();
-    bool found = false;
-    for(auto supProf : supportedProfiles)
-    {
-        if(supProf == profile) {
-            found = true;
-            break;
-        }
-    }
-    if(!found) return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
+    if(find(supportedProfiles.begin(), supportedProfiles.end(), profile) == supportedProfiles.end()) return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
     
     vector<VAEntrypoint> supportedEntryPoints = driverData->getChipData()->getSupportedEntryPoints(profile);
     
