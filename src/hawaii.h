@@ -23,7 +23,6 @@ private:
     
     vector<VAImageFormat> SUPPORTED_IMAGEFORMATS = {
         {.fourcc = VA_FOURCC_NV12},
-        {.fourcc = VA_FOURCC_P016}
     };
     
 public:
