@@ -4,7 +4,7 @@
 
 using namespace std;
 
-template <class Key,class Value>
+template <typename Key,typename Value>
 class DataTable {
 private:
     mutex tableMutex;
