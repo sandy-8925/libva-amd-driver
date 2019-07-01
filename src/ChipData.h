@@ -9,7 +9,7 @@ class ChipData
 {
     public:
         virtual vector<VAProfile> getSupportedVaProfiles() = 0;
-        virtual VAStatus getSupportedEntryPoints(VAProfile profile, VAEntrypoint *entrypoint_list, int *num_entrypoints) = 0;
+        virtual vector<VAEntrypoint> getSupportedEntryPoints(VAProfile profile) = 0;
         virtual vector<VAImageFormat> getSupportedImageFormats() = 0;
 };
 

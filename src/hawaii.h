@@ -30,30 +30,23 @@ public:
     vector<VAProfile> getSupportedVaProfiles()
     { return SUPPORTED_VAPROFILES; }
     
-    VAStatus getSupportedEntryPoints(VAProfile profile, VAEntrypoint *entrypoint_list, int *num_entrypoints)
+    vector<VAEntrypoint> getSupportedEntryPoints(VAProfile profile)
     {
         switch(profile) {
             case VAProfileNone:
-                *entrypoint_list = {VAEntrypointVideoProc};
-                *num_entrypoints = 1;
-                return VA_STATUS_SUCCESS;
+                return {VAEntrypointVideoProc};
             case VAProfileMPEG2Simple:
             case VAProfileMPEG2Main:
             case VAProfileVC1Simple:
             case VAProfileVC1Main:
             case VAProfileVC1Advanced:
-                *entrypoint_list = {VAEntrypointVLD};
-                *num_entrypoints = 1;
-                return VA_STATUS_SUCCESS;
+                return {VAEntrypointVLD};
             case VAProfileH264ConstrainedBaseline:
             case VAProfileH264Main:
             case VAProfileH264High:
-                VAEntrypoint entrypoints[] = {VAEntrypointVLD, VAEntrypointEncSlice};
-                memcpy(entrypoint_list, entrypoints, sizeof(entrypoints));
-                *num_entrypoints = sizeof(entrypoints)/sizeof(entrypoints[0]);
-                return VA_STATUS_SUCCESS;
+                return {VAEntrypointVLD, VAEntrypointEncSlice};
         }
-        return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
+        return {};
     }
     
     vector<VAImageFormat> getSupportedImageFormats()

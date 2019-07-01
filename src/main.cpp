@@ -164,7 +164,29 @@ VAStatus QueryConfigEntrypoints (VADriverContextP context, VAProfile profile, VA
     if(entrypoint_list == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
     if(num_entrypoints == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;      
     
-    return driverData->getChipData()->getSupportedEntryPoints(profile, entrypoint_list, num_entrypoints);
+    vector<VAProfile> supportedProfiles = driverData->getChipData()->getSupportedVaProfiles();
+    bool found = false;
+    for(auto supProf : supportedProfiles)
+    {
+        if(supProf == profile) {
+            found = true;
+            break;
+        }
+    }
+    if(!found) return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
+    
+    vector<VAEntrypoint> supportedEntryPoints = driverData->getChipData()->getSupportedEntryPoints(profile);
+    
+    VAEntrypoint *temp = entrypoint_list;
+    for(auto entrypoint : supportedEntryPoints)
+    {
+        *temp = entrypoint;
+        temp++;
+    }
+    
+    *num_entrypoints = supportedEntryPoints.size();
+    
+    return VA_STATUS_SUCCESS;
 }
 
 VAStatus DriverTerminate( VADriverContextP context)
