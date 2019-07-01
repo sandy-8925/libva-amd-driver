@@ -5,6 +5,7 @@
 
 #include <cstring>
 #include <stdlib.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -260,6 +261,93 @@ VAStatus QuerySubpictureFormats(VADriverContextP context, VAImageFormat *format_
     return VA_STATUS_SUCCESS;
 }
 
+void getVLDConfigAttributes(ChipData *chipData, VAProfile profile, VAConfigAttrib *attrib_list, int num_attribs)
+{
+    for(int ctr=0; ctr<num_attribs; ctr++)
+    {
+        switch(attrib_list[ctr].type)
+        {
+            case VAConfigAttribRTFormat:
+                attrib_list[ctr].value = chipData->getConfigAttribRTFormat(profile);
+                break;
+            default:
+                attrib_list[ctr].value = VA_ATTRIB_NOT_SUPPORTED;
+        }
+    }
+}
+
+void getEncSliceConfigAttributes(VAConfigAttrib *attrib_list, int num_attribs)
+{
+    for(int ctr=0; ctr<num_attribs; ctr++)
+    {
+        switch(attrib_list[ctr].type)
+        {
+            case VAConfigAttribRTFormat:
+                attrib_list[ctr].value = VA_RT_FORMAT_YUV420;
+                break;
+            case VAConfigAttribRateControl:
+                attrib_list[ctr].value = VA_RC_CQP | VA_RC_CBR | VA_RC_VBR;
+                break;
+            case VAConfigAttribEncPackedHeaders:
+                attrib_list[ctr].value = 0;
+                break;
+            case VAConfigAttribEncMaxRefFrames:
+                attrib_list[ctr].value = 1;
+                break;
+            default:
+                attrib_list[ctr].value = VA_ATTRIB_NOT_SUPPORTED;
+        }
+    }
+}
+
+void getVideoProcConfigAttributes(VAConfigAttrib *attrib_list, int num_attribs)
+{
+    for(int ctr=0; ctr<num_attribs; ctr++)
+    {
+        switch(attrib_list[ctr].type)
+        {
+            case VAConfigAttribRTFormat:
+                attrib_list[ctr].value = (VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10BPP | VA_RT_FORMAT_RGB32);
+                break;
+            default:
+                attrib_list[ctr].value = VA_ATTRIB_NOT_SUPPORTED;
+        }
+    }
+}
+
+VAStatus GetConfigAttributes(VADriverContextP context, VAProfile profile, VAEntrypoint entrypoint, VAConfigAttrib *attrib_list, int num_attribs)
+{
+    if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    DriverData* driverData = GET_DRIVER_DATA(context);
+    if(driverData == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    
+    vector<VAProfile> supportedProfiles = driverData->getChipData()->getSupportedVaProfiles();
+    if(find(supportedProfiles.begin(), supportedProfiles.end(), profile) == supportedProfiles.end()) return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
+    
+    vector<VAEntrypoint> supportedEntryPoints = driverData->getChipData()->getSupportedEntryPoints(profile);
+    if(find(supportedEntryPoints.begin(), supportedEntryPoints.end(), entrypoint) == supportedEntryPoints.end()) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    
+    if(attrib_list == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    
+    switch(entrypoint)
+    {
+        case VAEntrypointVLD:
+            getVLDConfigAttributes(driverData->getChipData(), profile, attrib_list, num_attribs);
+            break;
+        case VAEntrypointEncSlice:
+            getEncSliceConfigAttributes(attrib_list, num_attribs);
+            break;
+        case VAEntrypointVideoProc:
+            getVideoProcConfigAttributes(attrib_list, num_attribs);
+            break;
+        default:
+            for(int ctr=0; ctr<num_attribs; ctr++)
+            { attrib_list[ctr].value = VA_ATTRIB_NOT_SUPPORTED; }
+    }
+    
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus vaDriverInit(VADriverContextP context) {
     if(context==nullptr || context->vtable==nullptr || context->vtable_vpp==nullptr)
     { return VA_STATUS_ERROR_INVALID_CONTEXT; }
@@ -284,6 +372,7 @@ VAStatus vaDriverInit(VADriverContextP context) {
     context->vtable->vaQueryDisplayAttributes = QueryDisplayAttributes;
     context->vtable->vaQueryImageFormats = QueryImageFormats;
     context->vtable->vaQuerySubpictureFormats = QuerySubpictureFormats;
+    context->vtable->vaGetConfigAttributes = GetConfigAttributes;
     
     return VA_STATUS_SUCCESS;
 }

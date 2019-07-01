@@ -51,6 +51,9 @@ public:
     
     vector<VAImageFormat> getSupportedImageFormats()
     { return SUPPORTED_IMAGEFORMATS; }
+    
+    uint32_t getConfigAttribRTFormat(VAProfile profile)
+    { return VA_RT_FORMAT_YUV420; }
 };
 
 #endif //_HAWAII_H
