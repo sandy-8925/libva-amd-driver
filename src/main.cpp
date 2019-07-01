@@ -15,9 +15,16 @@ public:
 
 class DriverData
 {
+    private:
+        ChipData* chipData;
     public:
+        DriverData(ChipData* newChipData)
+        { chipData = newChipData; }
         DataTable<VASurfaceID, Surface> surfaceTable;
         DataTable<VAImageID, VAImage> imageTable;
+        
+        ChipData* getChipData() { return chipData; }
+        
         /*
          * Clears all data within this object
          */
@@ -130,11 +137,20 @@ static VAStatus DeriveImage(
 VAStatus QueryConfigProfiles(VADriverContextP context, VAProfile *profile_list, int *num_profiles)
 {
     if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    DriverData* driverData = GET_DRIVER_DATA(context);
+    if(driverData == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    
     if(profile_list == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
     if(num_profiles == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
     
-    memcpy(profile_list, HAWAII_SUPPORTED_VAPROFILES, sizeof(HAWAII_SUPPORTED_VAPROFILES));
-    *num_profiles = sizeof(HAWAII_SUPPORTED_VAPROFILES)/sizeof(HAWAII_SUPPORTED_VAPROFILES[0]);
+    vector<VAProfile> supportedProfiles = driverData->getChipData()->getSupportedVaProfiles();
+    VAProfile *temp = profile_list;
+    for(auto profile : supportedProfiles)
+    {
+        *temp = profile;
+        temp++;
+    }
+    *num_profiles = supportedProfiles.size();
     
     return VA_STATUS_SUCCESS;
 }
@@ -142,10 +158,13 @@ VAStatus QueryConfigProfiles(VADriverContextP context, VAProfile *profile_list, 
 VAStatus QueryConfigEntrypoints (VADriverContextP context, VAProfile profile, VAEntrypoint *entrypoint_list, int *num_entrypoints)
 {
     if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    DriverData* driverData = GET_DRIVER_DATA(context);
+    if(driverData == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    
     if(entrypoint_list == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
     if(num_entrypoints == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;      
     
-    return hawaii_getSupportedEntryPoints(profile, entrypoint_list, num_entrypoints);
+    return driverData->getChipData()->getSupportedEntryPoints(profile, entrypoint_list, num_entrypoints);
 }
 
 VAStatus DriverTerminate( VADriverContextP context)
@@ -175,11 +194,20 @@ VAStatus QueryDisplayAttributes(VADriverContextP context, VADisplayAttribute *at
 VAStatus QueryImageFormats(VADriverContextP context, VAImageFormat *format_list, int *num_formats)
 {
     if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    DriverData* driverData = GET_DRIVER_DATA(context);
+    if(driverData == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    
     if(format_list == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
     if(num_formats == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
     
-    memcpy(format_list, HAWAII_SUPPORTED_IMAGEFORMATS, sizeof(HAWAII_SUPPORTED_IMAGEFORMATS));
-    *num_formats = sizeof(HAWAII_SUPPORTED_IMAGEFORMATS)/sizeof(HAWAII_SUPPORTED_IMAGEFORMATS[0]);
+    vector<VAImageFormat> imageFormats = driverData->getChipData()->getSupportedImageFormats();
+    VAImageFormat *temp = format_list;
+    for(auto format : imageFormats)
+    {
+        *temp = format;
+        temp++;
+    }
+    *num_formats = imageFormats.size();
     
     return VA_STATUS_SUCCESS;
 }
@@ -214,7 +242,7 @@ VAStatus vaDriverInit(VADriverContextP context) {
     if(context==nullptr || context->vtable==nullptr || context->vtable_vpp==nullptr)
     { return VA_STATUS_ERROR_INVALID_CONTEXT; }
     
-    context->pDriverData = new DriverData;
+    context->pDriverData = new DriverData(new HawaiiChipData);
     context->version_major = VA_MAJOR_VERSION;
     context->version_minor = VA_MINOR_VERSION;
     context->max_profiles = VA_MAX_PROFILES;
