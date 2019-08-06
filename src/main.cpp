@@ -82,6 +82,18 @@ static VAStatus CreateSurfaces2(
             return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
     }
     
+    if(num_attribs < 0)
+    {
+        context->info_callback(context, "Invalid value for num_attribs parameter");
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+    
+    if(num_attribs>0 && attrib_list==nullptr)
+    {
+        context->info_callback(context, "num_attribs is positive, but attrib_list is NULL");
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+    
     //TODO: Check the attrib_list and num_attribs parameters and handle appropriately
     
     memset(surfaces, VA_INVALID_ID, num_surfaces * sizeof(VASurfaceID));
