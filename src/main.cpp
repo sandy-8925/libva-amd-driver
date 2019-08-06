@@ -14,6 +14,13 @@ public:
     uint32_t width, height;
 };
 
+class Config {
+    public:
+        VAProfile profile;
+        VAEntrypoint entrypoint;
+        vector<VAConfigAttrib> configAttributes;
+};
+
 class DriverData
 {
     private:
@@ -23,6 +30,7 @@ class DriverData
         { chipData = newChipData; }
         DataTable<VASurfaceID, Surface> surfaceTable;
         DataTable<VAImageID, VAImage> imageTable;
+        DataTable<VAConfigID, Config> configTable;
         
         ChipData* getChipData() { return chipData; }
         
@@ -35,6 +43,7 @@ class DriverData
 void DriverData::cleanup() {
     surfaceTable.clear();
     imageTable.clear();
+    configTable.clear();
 }
 
 #define GET_DRIVER_DATA(context) (DriverData*)context->pDriverData
@@ -280,14 +289,14 @@ void getVLDConfigAttributes(ChipData *chipData, VAProfile profile, VAConfigAttri
     }
 }
 
-void getEncSliceConfigAttributes(VAConfigAttrib *attrib_list, int num_attribs)
+void getEncSliceConfigAttributes(ChipData *chipData, VAProfile profile, VAConfigAttrib *attrib_list, int num_attribs)
 {
     for(int ctr=0; ctr<num_attribs; ctr++)
     {
         switch(attrib_list[ctr].type)
         {
             case VAConfigAttribRTFormat:
-                attrib_list[ctr].value = VA_RT_FORMAT_YUV420;
+                attrib_list[ctr].value = chipData->getConfigAttribRTFormat(profile);
                 break;
             case VAConfigAttribRateControl:
                 attrib_list[ctr].value = VA_RC_CQP | VA_RC_CBR | VA_RC_VBR;
@@ -339,7 +348,7 @@ VAStatus GetConfigAttributes(VADriverContextP context, VAProfile profile, VAEntr
             getVLDConfigAttributes(driverData->getChipData(), profile, attrib_list, num_attribs);
             break;
         case VAEntrypointEncSlice:
-            getEncSliceConfigAttributes(attrib_list, num_attribs);
+            getEncSliceConfigAttributes(driverData->getChipData(), profile, attrib_list, num_attribs);
             break;
         case VAEntrypointVideoProc:
             getVideoProcConfigAttributes(attrib_list, num_attribs);
@@ -348,6 +357,96 @@ VAStatus GetConfigAttributes(VADriverContextP context, VAProfile profile, VAEntr
             for(int ctr=0; ctr<num_attribs; ctr++)
             { attrib_list[ctr].value = VA_ATTRIB_NOT_SUPPORTED; }
     }
+    
+    return VA_STATUS_SUCCESS;
+}
+
+bool isRTFormatSupported(ChipData* chipData, VAProfile profile, VAEntrypoint entrypoint, uint32_t rtFormat)
+{
+    switch(entrypoint)
+    {
+        case VAEntrypointVLD:
+        case VAEntrypointEncSlice:
+            return rtFormat & chipData->getConfigAttribRTFormat(profile);
+            break;
+        case VAEntrypointVideoProc:
+            return rtFormat & (VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10BPP | VA_RT_FORMAT_RGB32);
+            break;
+        default:
+            return false;
+    }
+}
+
+VAStatus CreateConfig(
+		VADriverContextP context,
+		VAProfile profile, 
+		VAEntrypoint entrypoint, 
+		VAConfigAttrib *attrib_list,
+		int num_attribs,
+		VAConfigID *config_id
+	)
+{
+    if(context==nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    DriverData* driverData = GET_DRIVER_DATA(context);
+    if(driverData == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    
+    vector<VAProfile> supportedProfiles = driverData->getChipData()->getSupportedVaProfiles();
+    if(find(supportedProfiles.begin(), supportedProfiles.end(), profile) == supportedProfiles.end()) return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
+    
+    vector<VAEntrypoint> supportedEntryPoints = driverData->getChipData()->getSupportedEntryPoints(profile);
+    if(find(supportedEntryPoints.begin(), supportedEntryPoints.end(), entrypoint) == supportedEntryPoints.end()) return VA_STATUS_ERROR_UNSUPPORTED_ENTRYPOINT;
+    
+    if(num_attribs < 0)
+    {
+        context->info_callback(context, "Invalid value for num_attribs parameter");
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+    
+    if(num_attribs>0 && attrib_list==nullptr)
+    {
+        context->info_callback(context, "num_attribs is positive, but attrib_list is NULL");
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+    
+    if(config_id == nullptr)
+    {
+        context->info_callback(context, "config_id parameter is null");
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+    
+    Config* config = new Config;
+    config->profile = profile;
+    config->entrypoint = entrypoint;
+    
+    for(int ctr=0; ctr<num_attribs; ctr++)
+    {
+        switch(attrib_list[ctr].type)
+        {
+            case VAConfigAttribRTFormat:
+                if(isRTFormatSupported(driverData->getChipData(), profile, entrypoint, attrib_list[ctr].value))
+                { config->configAttributes.push_back(attrib_list[ctr]); }
+                else 
+                { 
+                    delete config;
+                    return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
+                }
+                break;
+            case VAConfigAttribRateControl:
+                if(entrypoint==VAEntrypointEncSlice && (attrib_list[ctr].value & (VA_RC_CQP | VA_RC_CBR | VA_RC_VBR)))
+                { config->configAttributes.push_back(attrib_list[ctr]); }
+                break;
+            case VAConfigAttribEncPackedHeaders:
+                if(entrypoint==VAEntrypointEncSlice && attrib_list[ctr].value==0)
+                { config->configAttributes.push_back(attrib_list[ctr]); }
+                break;
+            case VAConfigAttribEncMaxRefFrames:
+                if(entrypoint==VAEntrypointEncSlice && attrib_list[ctr].value==1)
+                { config->configAttributes.push_back(attrib_list[ctr]); }
+                break;
+        }
+    }
+    
+    *config_id = driverData->configTable.insert(config);
     
     return VA_STATUS_SUCCESS;
 }
@@ -377,6 +476,7 @@ VAStatus vaDriverInit(VADriverContextP context) {
     context->vtable->vaQueryImageFormats = QueryImageFormats;
     context->vtable->vaQuerySubpictureFormats = QuerySubpictureFormats;
     context->vtable->vaGetConfigAttributes = GetConfigAttributes;
+    context->vtable->vaCreateConfig = CreateConfig;
     
     return VA_STATUS_SUCCESS;
 }
