@@ -463,6 +463,39 @@ VAStatus DestroyConfig(VADriverContextP context, VAConfigID config_id)
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus QueryConfigAttributes(VADriverContextP context,
+		VAConfigID config_id, 
+		VAProfile *profile,		/* out */
+		VAEntrypoint *entrypoint, 	/* out */
+		VAConfigAttrib *attrib_list,	/* out */
+		int *num_attribs		/* out */
+	)
+{
+    if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    DriverData* driverData = GET_DRIVER_DATA(context);
+    if(driverData == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    
+    if(profile == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    if(entrypoint == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    if(attrib_list == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    if(num_attribs == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    
+    Config* config = driverData->configTable.getValue(config_id);
+    if(config == nullptr) return VA_STATUS_ERROR_INVALID_CONFIG;
+    
+    *profile = config->profile;
+    *entrypoint = config->entrypoint;
+    VAConfigAttrib* temp = attrib_list;
+    for(auto attrib : config->configAttributes)
+    {
+        *temp = attrib;
+        *temp++;
+    }
+    *num_attribs = config->configAttributes.size();
+    
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus vaDriverInit(VADriverContextP context) {
     if(context==nullptr || context->vtable==nullptr || context->vtable_vpp==nullptr)
     { return VA_STATUS_ERROR_INVALID_CONTEXT; }
@@ -490,6 +523,7 @@ VAStatus vaDriverInit(VADriverContextP context) {
     context->vtable->vaGetConfigAttributes = GetConfigAttributes;
     context->vtable->vaCreateConfig = CreateConfig;
     context->vtable->vaDestroyConfig = DestroyConfig;
+    context->vtable->vaQueryConfigAttributes = QueryConfigAttributes;
     
     return VA_STATUS_SUCCESS;
 }
