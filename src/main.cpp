@@ -338,7 +338,7 @@ VAStatus GetConfigAttributes(VADriverContextP context, VAProfile profile, VAEntr
     if(find(supportedProfiles.begin(), supportedProfiles.end(), profile) == supportedProfiles.end()) return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
     
     vector<VAEntrypoint> supportedEntryPoints = driverData->getChipData()->getSupportedEntryPoints(profile);
-    if(find(supportedEntryPoints.begin(), supportedEntryPoints.end(), entrypoint) == supportedEntryPoints.end()) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    if(find(supportedEntryPoints.begin(), supportedEntryPoints.end(), entrypoint) == supportedEntryPoints.end()) return VA_STATUS_ERROR_UNSUPPORTED_ENTRYPOINT;
     
     if(attrib_list == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
     
