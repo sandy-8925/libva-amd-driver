@@ -451,6 +451,18 @@ VAStatus CreateConfig(
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus DestroyConfig(VADriverContextP context, VAConfigID config_id)
+{
+    if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    DriverData* driverData = GET_DRIVER_DATA(context);
+    if(driverData == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    
+    if(driverData->configTable.getValue(config_id) == nullptr) return VA_STATUS_ERROR_INVALID_CONFIG;
+    driverData->configTable.deleteValue(config_id);
+    
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus vaDriverInit(VADriverContextP context) {
     if(context==nullptr || context->vtable==nullptr || context->vtable_vpp==nullptr)
     { return VA_STATUS_ERROR_INVALID_CONTEXT; }
@@ -477,6 +489,7 @@ VAStatus vaDriverInit(VADriverContextP context) {
     context->vtable->vaQuerySubpictureFormats = QuerySubpictureFormats;
     context->vtable->vaGetConfigAttributes = GetConfigAttributes;
     context->vtable->vaCreateConfig = CreateConfig;
+    context->vtable->vaDestroyConfig = DestroyConfig;
     
     return VA_STATUS_SUCCESS;
 }

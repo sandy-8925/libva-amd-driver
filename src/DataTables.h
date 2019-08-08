@@ -14,6 +14,7 @@ private:
 public:
     Key insert(Value* val);
     Value* getValue(Key key);
+    void deleteValue(Key key);
     /*
      * Removes all data from this table
      */
@@ -45,4 +46,11 @@ void DataTable<Key, Value>::clear()
     }
     dataTbl.clear();
     tableMutex.unlock();
+}
+
+template<typename Key, typename Value>
+void DataTable<Key, Value>::deleteValue(Key key)
+{
+    delete dataTbl[key];
+    dataTbl[key] = nullptr;
 }
