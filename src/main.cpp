@@ -12,6 +12,7 @@ using namespace std;
 class Surface {
 public:
     uint32_t width, height;
+    VASurfaceStatus status = VASurfaceReady;
 };
 
 class Config {
@@ -573,6 +574,22 @@ VAStatus DestroyContext(VADriverContextP driverContext, VAContextID contextId)
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus QuerySurfaceStatus(VADriverContextP context, VASurfaceID render_target, VASurfaceStatus *status)
+{
+    if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    DriverData* driverData = GET_DRIVER_DATA(context);
+    if(driverData == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+           
+    Surface* surface = driverData->surfaceTable.getValue(render_target);
+    if(surface == nullptr) return VA_STATUS_ERROR_INVALID_SURFACE;
+    
+    if(status == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    
+    *status = surface->status;
+    
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus vaDriverInit(VADriverContextP context) {
     if(context==nullptr || context->vtable==nullptr || context->vtable_vpp==nullptr)
     { return VA_STATUS_ERROR_INVALID_CONTEXT; }
@@ -604,6 +621,7 @@ VAStatus vaDriverInit(VADriverContextP context) {
     context->vtable->vaCreateContext = CreateContext;
     context->vtable->vaCreateMFContext = CreateMFContext;
     context->vtable->vaDestroyContext = DestroyContext;
+    context->vtable->vaQuerySurfaceStatus = QuerySurfaceStatus;
     
     return VA_STATUS_SUCCESS;
 }
