@@ -559,6 +559,20 @@ VAStatus CreateContext(VADriverContextP driverContext,
 VAStatus CreateMFContext(VADriverContextP context, VAMFContextID *mfe_context)
 { return VA_STATUS_ERROR_UNIMPLEMENTED; }
 
+VAStatus DestroyContext(VADriverContextP driverContext, VAContextID contextId)
+{
+    if(driverContext == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    DriverData* driverData = GET_DRIVER_DATA(driverContext);
+    if(driverData == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    
+    Context* context = driverData->contextTable.getValue(contextId);
+    if(context == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    
+    driverData->contextTable.deleteValue(contextId);
+    
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus vaDriverInit(VADriverContextP context) {
     if(context==nullptr || context->vtable==nullptr || context->vtable_vpp==nullptr)
     { return VA_STATUS_ERROR_INVALID_CONTEXT; }
@@ -589,6 +603,7 @@ VAStatus vaDriverInit(VADriverContextP context) {
     context->vtable->vaQueryConfigAttributes = QueryConfigAttributes;
     context->vtable->vaCreateContext = CreateContext;
     context->vtable->vaCreateMFContext = CreateMFContext;
+    context->vtable->vaDestroyContext = DestroyContext;
     
     return VA_STATUS_SUCCESS;
 }
