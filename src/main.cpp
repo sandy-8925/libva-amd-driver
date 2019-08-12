@@ -556,6 +556,9 @@ VAStatus CreateContext(VADriverContextP driverContext,
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus CreateMFContext(VADriverContextP context, VAMFContextID *mfe_context)
+{ return VA_STATUS_ERROR_UNIMPLEMENTED; }
+
 VAStatus vaDriverInit(VADriverContextP context) {
     if(context==nullptr || context->vtable==nullptr || context->vtable_vpp==nullptr)
     { return VA_STATUS_ERROR_INVALID_CONTEXT; }
@@ -585,6 +588,7 @@ VAStatus vaDriverInit(VADriverContextP context) {
     context->vtable->vaDestroyConfig = DestroyConfig;
     context->vtable->vaQueryConfigAttributes = QueryConfigAttributes;
     context->vtable->vaCreateContext = CreateContext;
+    context->vtable->vaCreateMFContext = CreateMFContext;
     
     return VA_STATUS_SUCCESS;
 }
