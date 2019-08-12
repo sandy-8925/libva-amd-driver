@@ -21,6 +21,37 @@ class Config {
         vector<VAConfigAttrib> configAttributes;
 };
 
+class Context
+{
+    public:
+        Context(
+            VAConfigID configId,
+            int picture_width,
+            int picture_height,
+            int flag,
+            VASurfaceID *render_targets,
+            int num_render_targets
+            )
+        {
+            this->configId = configId;
+            this->picture_height = picture_height;
+            this->picture_width = picture_width;
+            this->flag = flag;
+            VASurfaceID* temp = render_targets;
+            for(int ctr=0; ctr<num_render_targets; ctr++)
+            {
+                this->render_targets.push_back(*temp);
+                temp++;
+            }
+        }
+    
+        VAConfigID configId;
+        int picture_width;
+		int picture_height;
+		int flag;
+		vector<VASurfaceID> render_targets;
+};
+
 class DriverData
 {
     private:
@@ -31,6 +62,7 @@ class DriverData
         DataTable<VASurfaceID, Surface> surfaceTable;
         DataTable<VAImageID, VAImage> imageTable;
         DataTable<VAConfigID, Config> configTable;
+        DataTable<VAContextID, Context> contextTable;
         
         ChipData* getChipData() { return chipData; }
         
@@ -496,6 +528,34 @@ VAStatus QueryConfigAttributes(VADriverContextP context,
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus CreateContext(VADriverContextP driverContext,
+        VAConfigID config_id,
+		int picture_width,
+		int picture_height,
+		int flag,
+		VASurfaceID *render_targets,
+		int num_render_targets,
+		VAContextID *contextId
+	)
+{
+    if(driverContext == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    DriverData* driverData = GET_DRIVER_DATA(driverContext);
+    if(driverData == nullptr) return VA_STATUS_ERROR_INVALID_CONTEXT;
+    
+    Config* config = driverData->configTable.getValue(config_id);
+    if(config == nullptr) return VA_STATUS_ERROR_INVALID_CONFIG;
+    
+    if(picture_height<=0 || picture_width<=0) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    if(render_targets == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    if(num_render_targets <= 0) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    if(contextId == nullptr) return VA_STATUS_ERROR_INVALID_PARAMETER;
+    
+    Context* context = new Context(config_id, picture_width, picture_height, flag, render_targets, num_render_targets);
+    *contextId = driverData->contextTable.insert(context);
+    
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus vaDriverInit(VADriverContextP context) {
     if(context==nullptr || context->vtable==nullptr || context->vtable_vpp==nullptr)
     { return VA_STATUS_ERROR_INVALID_CONTEXT; }
@@ -524,6 +584,7 @@ VAStatus vaDriverInit(VADriverContextP context) {
     context->vtable->vaCreateConfig = CreateConfig;
     context->vtable->vaDestroyConfig = DestroyConfig;
     context->vtable->vaQueryConfigAttributes = QueryConfigAttributes;
+    context->vtable->vaCreateContext = CreateContext;
     
     return VA_STATUS_SUCCESS;
 }
